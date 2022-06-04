@@ -18,7 +18,7 @@ function findByLeague($league)
         $statement = $dbh->prepare("SELECT first.name as A, GAME.score, second.name as B
             FROM (GAME inner join TEAM AS first on GAME.FID_Team1 = first.ID_TEAM) 
             inner join TEAM AS second on GAME.FID_Team2 = second.ID_TEAM 
-            WHERE (first.league = second.league) = ?");
+            WHERE first.league AND second.league = ?");
         $statement->execute([$league]);
         echo "<table>";
         echo " <tr>
@@ -79,13 +79,14 @@ function findByDate($first_date, $second_date)
 function findByName($name)
 {
     global $dbh;
+    // $name = 'Richard';
     try {
         $statement = $dbh->prepare("SELECT GAME.date, GAME.place, GAME.score, first.name as A, second.name as B
         FROM (GAME inner join TEAM AS first on GAME.FID_Team1 = first.ID_TEAM) 
         inner join TEAM AS second on GAME.FID_Team2 = second.ID_TEAM 
-        WHERE GAME.ID_Game = 
+        WHERE GAME.ID_Game IN 
             (SELECT GAME.ID_Game FROM GAME WHERE 
-            (FID_TEAM1 OR FID_TEAM2) = (SELECT FID_TEAM FROM PLAYER WHERE ID_Player = ?))");
+            (SELECT FID_TEAM FROM PLAYER WHERE ID_Player = ?) IN (FID_TEAM1, FID_TEAM2))");
         $statement->execute([$name]);
         echo "<table>";
         echo " <tr>
